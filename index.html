@@ -31,7 +31,7 @@ button{padding:12px 30px; margin:12px; font-size:16px; font-weight:bold; border:
 .register-btn:hover{background:#00ffff;transform:scale(1.05);}
 .login-btn{background:#fff;color:#000;}
 .login-btn:hover{background:#eee;transform:scale(1.05);}
-.admin-btn{background:#f00;color:#fff;margin-top:30px;}
+.admin-btn{background:#f00;color:#fff;margin-top:10px;}
 .admin-btn:hover{background:#ff4c4c;transform:scale(1.05);}
 footer{position:absolute; bottom:15px; font-size:12px; color:#aaa; text-align:center; width:100%;}
 </style>
@@ -59,7 +59,7 @@ footer{position:absolute; bottom:15px; font-size:12px; color:#aaa; text-align:ce
   <button class="register-btn">Student Register</button>
   <button class="login-btn">Student Login</button>
   <button class="admin-btn">Admin Panel</button>
-  <button class="admin-btn">Student Results</button> <!-- නව Button එක -->
+  <button class="admin-btn">Student Results</button>
 </div>
 
 <footer>NH TECH ACADEMY</footer>
@@ -68,18 +68,35 @@ footer{position:absolute; bottom:15px; font-size:12px; color:#aaa; text-align:ce
 <script>
 // Timeline for loader animation + instructions
 let tl = gsap.timeline();
-
-// Animate logo-name first
 tl.to(".logo-name", {y:0, opacity:1, duration:2, ease:"power2.out"});
-
-// Fade in instructions after logo animation
 tl.to(".instructions", {opacity:1, duration:1.5}, "+=0.5");
-
-// Fade out loader & show login page
 tl.to(".loading-page", {opacity:0, duration:1.5, onComplete: ()=>{
     document.querySelector(".loading-page").style.display="none";
     gsap.to(".login-container",{opacity:1, duration:1.5});
 }}, "+=2");
+
+// Button redirects
+document.addEventListener("DOMContentLoaded", function() {
+  // Student Register
+  document.querySelector(".register-btn").addEventListener("click", ()=>{
+    window.location.href = "register.html";
+  });
+
+  // Student Login
+  document.querySelector(".login-btn").addEventListener("click", ()=>{
+    window.location.href = "login.html";
+  });
+
+  // Admin Panel (first admin button)
+  document.querySelectorAll(".admin-btn")[0].addEventListener("click", ()=>{
+    window.location.href = "admin.html";
+  });
+
+  // Student Results (second admin button)
+  document.querySelectorAll(".admin-btn")[1].addEventListener("click", ()=>{
+    window.location.href = "result.html";
+  });
+});
 </script>
 
 </body>
