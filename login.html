@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Question - LectureGuard</title>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+<style>
+body{ font-family:"Michroma",sans-serif; background:#0f2027; color:#fff; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; }
+.container{ background:#1a1a2e; padding:30px; border-radius:12px; width:400px; text-align:center; box-shadow:0 0 20px #0ff; }
+h1{color:#0ff; margin-bottom:20px;}
+input, button{ width:100%; padding:10px; margin:10px 0; border-radius:6px; border:none;}
+button{ background:#0ff; color:#000; font-weight:bold; cursor:pointer; transition:0.3s;}
+button:hover{background:#00ffff;}
+.option-btn{background:#444;color:#fff; margin:5px 0;}
+.option-btn.correct{background:green;}
+.option-btn.wrong{background:red;}
+.timer{font-weight:bold; margin:10px 0; font-size:18px;}
+.result{font-size:18px; color:#0f0; margin-top:15px;}
+#backBtn{position:absolute; top:10px; left:10px; background:#f00; color:#fff; padding:8px 12px; border:none; border-radius:6px; cursor:pointer;}
+#backBtn:hover{background:#ff4c4c;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div class="container" id="loginContainer">
+  <button id="backBtn" onclick="goBack()">Back</button>
+  <h1>Quick Question Login</h1>
+  <input type="text" id="studentId" placeholder="Enter your Student ID">
+  <button id="loginBtn">Login</button>
+</div>
+
+<!-- QUIZ PAGE -->
+<div class="container" id="quizContainer" style="display:none;">
+  <h1>Quick Question</h1>
+  <div id="questionText"></div>
+  <div id="options"></div>
+  <div class="timer" id="timer">10</div>
+</div>
+
+<!-- RESULT PAGE -->
+<div class="container" id="resultContainer" style="display:none;">
+  <h1>Quiz Result</h1>
+  <div class="result" id="scoreText"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script>
+// Firebase Config
+const firebaseConfig = {
+  databaseURL: "https://lectureguard-system-default-rtdb.asia-southeast1.firebasedatabase.app/"
+};
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Elements
+const loginContainer = document.getElementById("loginContainer");
+const quizContainer = document.getElementById("quizContainer");
+const resultContainer = document.getElementById("resultContainer");
+const studentIdInput = document.getElementById("studentId");
+const loginBtn = document.getElementById("loginBtn");
+const questionText = document.getElementById("questionText");
+const optionsDiv = document.getElementById("options");
+const timerEl = document.getElementById("timer");
+const scoreText = document.getElementById("scoreText");
+
+let questions = [];
+let currentQ = 0;
+let score = 0;
+let timer;
+let currentStudentKey = ""; // store Firebase key for updating score
+
+// BACK BUTTON
+function goBack(){ window.history.back(); }
+
+// LOGIN
+loginBtn.addEventListener("click", ()=>{
+  const id = studentIdInput.value.trim();
+  if(!id){ alert("Enter your ID!"); return; }
+
+  // Verify student exists
+  db.ref("students").orderByChild("studentId").equalTo(id).once("value", snapshot=>{
+    if(snapshot.exists()){
+      snapshot.forEach(snap=>{
+        currentStudentKey = snap.key; // save key to update score later
+      });
+      startQuiz(id);
+    } else {
+      alert("Invalid Student ID!");
+    }
+  });
+});
+
+// START QUIZ
+function startQuiz(studentId){
+  loginContainer.style.display="none";
+  quizContainer.style.display="block";
+
+  db.ref("questions").once("value", snapshot=>{
+    if(snapshot.exists()){
+      questions = [];
+      snapshot.forEach(q=>{
+        questions.push({id:q.key,...q.val()});
+      });
+      if(questions.length>0){
+        currentQ=0;
+        score=0;
+        showQuestion();
+      } else alert("No questions available!");
+    } else alert("No questions pushed yet!");
+  });
+}
+
+// SHOW QUESTION
+function showQuestion(){
+  if(currentQ >= questions.length){
+    saveScore();
+    showResult();
+    return;
+  }
+
+  const q = questions[currentQ];
+  questionText.textContent = q.text;
+  optionsDiv.innerHTML="";
+
+  q.options.forEach(opt=>{
+    const btn = document.createElement("button");
+    btn.className="option-btn";
+    btn.textContent = opt;
+    btn.onclick = ()=> checkAnswer(btn,opt,q.correct);
+    optionsDiv.appendChild(btn);
+  });
+
+  let time = 10;
+  timerEl.textContent = time;
+  clearInterval(timer);
+  timer = setInterval(()=>{
+    time--;
+    timerEl.textContent = time;
+    if(time<=0){
+      clearInterval(timer);
+      currentQ++;
+      showQuestion();
+    }
+  },1000);
+}
+
+// CHECK ANSWER
+function checkAnswer(btn, selected, correct){
+  clearInterval(timer);
+  const btns = document.querySelectorAll(".option-btn");
+  btns.forEach(b=>{
+    if(b.textContent === correct) b.classList.add("correct");
+    if(b.textContent === selected && selected!==correct) b.classList.add("wrong");
+    b.disabled=true;
+  });
+
+  if(selected === correct) score++;
+  setTimeout(()=>{
+    currentQ++;
+    showQuestion();
+  },1000);
+}
+
+// SAVE SCORE TO FIREBASE
+function saveScore(){
+  if(currentStudentKey){
+    db.ref(`students/${currentStudentKey}`).update({score: score});
+  }
+}
+
+// SHOW RESULT
+function showResult(){
+  quizContainer.style.display="none";
+  resultContainer.style.display="block";
+  scoreText.textContent = `You scored ${score} out of ${questions.length}`;
+}
+</script>
+</body>
+</html>
