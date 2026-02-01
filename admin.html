@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - LectureGuard</title>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+<style>
+body{
+  font-family:"Michroma",sans-serif;
+  background:#0f2027;
+  color:#fff;
+  margin:0;
+  padding:20px;
+}
+h1{color:#0ff; text-align:center;}
+.container{max-width:600px; margin:auto; background:#1a1a2e; padding:20px; border-radius:12px;}
+input, textarea, select, button{
+  width:100%; margin:8px 0; padding:10px; border-radius:6px; border:none;
+}
+button{
+  cursor:pointer; font-weight:bold; transition:0.3s;
+}
+button:hover{opacity:0.8;}
+.add-btn{background:#0ff; color:#000;}
+.cancel-btn{background:#f00; color:#fff;}
+.student-list{margin-top:20px; background:#222; padding:10px; border-radius:8px; max-height:200px; overflow:auto;}
+.student-item{border-bottom:1px solid #555; padding:5px; display:flex; justify-content:space-between; align-items:center;}
+</style>
+</head>
+<body>
+
+<h1>Admin Panel - LectureGuard</h1>
+
+<div class="container">
+  <h2>Add Question</h2>
+  <textarea id="questionText" placeholder="Enter Question"></textarea>
+  <input type="text" id="option1" placeholder="Option 1">
+  <input type="text" id="option2" placeholder="Option 2">
+  <input type="text" id="option3" placeholder="Option 3">
+  <input type="text" id="option4" placeholder="Option 4">
+  <select id="correctOption">
+    <option value="">Select Correct Answer</option>
+    <option value="1">Option 1</option>
+    <option value="2">Option 2</option>
+    <option value="3">Option 3</option>
+    <option value="4">Option 4</option>
+  </select>
+  <button class="add-btn" id="addQuestionBtn">Add Question</button>
+</div>
+
+<div class="container">
+  <h2>Registered Students</h2>
+  <div class="student-list" id="studentList"></div>
+</div>
+
+<div class="container">
+  <h2>Quiz Control</h2>
+  <button class="cancel-btn" id="cancelQuizBtn">Cancel Quiz for All</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script>
+// Firebase Config
+const firebaseConfig = {
+  databaseURL: "https://lectureguard-system-default-rtdb.asia-southeast1.firebasedatabase.app/"
+};
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Elements
+const addBtn = document.getElementById("addQuestionBtn");
+const questionText = document.getElementById("questionText");
+const option1 = document.getElementById("option1");
+const option2 = document.getElementById("option2");
+const option3 = document.getElementById("option3");
+const option4 = document.getElementById("option4");
+const correctOption = document.getElementById("correctOption");
+const studentListDiv = document.getElementById("studentList");
+const cancelQuizBtn = document.getElementById("cancelQuizBtn");
+
+// ADD QUESTION
+addBtn.addEventListener("click", ()=>{
+  const q = questionText.value.trim();
+  const o1 = option1.value.trim();
+  const o2 = option2.value.trim();
+  const o3 = option3.value.trim();
+  const o4 = option4.value.trim();
+  const correct = correctOption.value;
+
+  if(!q || !o1 || !o2 || !o3 || !o4 || !correct){
+    alert("Fill all fields and select correct option!");
+    return;
+  }
+
+  const newQRef = db.ref("questions").push();
+  newQRef.set({
+    text: q,
+    options: [o1,o2,o3,o4],
+    correct: [o1,o2,o3,o4][correct-1]
+  }, err=>{
+    if(err) alert("Error adding question!");
+    else alert("Question added successfully!");
+    // clear fields
+    questionText.value=""; option1.value=""; option2.value=""; option3.value=""; option4.value=""; correctOption.value="";
+  });
+});
+
+// FETCH STUDENTS
+function fetchStudents(){
+  studentListDiv.innerHTML="";
+  db.ref("students").once("value", snapshot=>{
+    if(snapshot.exists()){
+      snapshot.forEach(s=>{
+        const data = s.val();
+        const div = document.createElement("div");
+        div.className="student-item";
+        div.innerHTML=`${data.name} - ${data.district} - Age: ${data.age} <button onclick="cancelStudent('${s.key}')">Cancel Quiz</button>`;
+        studentListDiv.appendChild(div);
+      });
+    }
+  });
+}
+
+// CANCEL STUDENT QUIZ
+function cancelStudent(studentKey){
+  db.ref("students/"+studentKey+"/quizStatus").set("cancelled");
+  alert("Quiz cancelled for student");
+}
+
+// CANCEL ALL QUIZ
+cancelQuizBtn.addEventListener("click", ()=>{
+  db.ref("students").once("value", snapshot=>{
+    snapshot.forEach(s=>{
+      db.ref("students/"+s.key+"/quizStatus").set("cancelled");
+    });
+    alert("Quiz cancelled for all students");
+  });
+});
+
+// Initial load
+fetchStudents();
+</script>
+</body>
+</html>
