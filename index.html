@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LectureGuard Quick Question</title>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Michroma",sans-serif; background:#0f2027; color:#fff; height:100vh; overflow:hidden;}
+
+/* LOADING PAGE */
+.loading-page{
+  position:absolute; top:0; left:0; height:100%; width:100%;
+  background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:1rem; color:#fff; z-index:10;
+}
+#svg{height:150px; width:150px; stroke:white; fill-opacity:0; stroke-width:3px;
+ stroke-dasharray:4500; stroke-dashoffset:4500; animation:draw 4s ease forwards;}
+@keyframes draw{0%{stroke-dashoffset:4500;} 100%{stroke-dashoffset:0;}}
+.name-container{height:30px; overflow:hidden;}
+.logo-name{font-size:22px; letter-spacing:12px; font-weight:bolder; opacity:0; text-transform:uppercase;}
+.instructions{color:#fff; text-align:center; max-width:400px; opacity:0; margin-top:20px; line-height:1.6;}
+
+/* LOGIN PAGE */
+.login-container{display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; opacity:0; transition:opacity 1.5s ease; padding:20px;}
+.login-container h1{font-size:32px; letter-spacing:2px; margin-bottom:40px; color:#0ff;}
+button{padding:12px 30px; margin:12px; font-size:16px; font-weight:bold; border:none; border-radius:8px; cursor:pointer; transition:0.3s;}
+.register-btn{background:#0ff;color:#000;}
+.register-btn:hover{background:#00ffff;transform:scale(1.05);}
+.login-btn{background:#fff;color:#000;}
+.login-btn:hover{background:#eee;transform:scale(1.05);}
+.admin-btn{background:#f00;color:#fff;margin-top:30px;}
+.admin-btn:hover{background:#ff4c4c;transform:scale(1.05);}
+footer{position:absolute; bottom:15px; font-size:12px; color:#aaa; text-align:center; width:100%;}
+</style>
+</head>
+<body>
+
+<!-- LOADING PAGE -->
+<div class="loading-page">
+  <svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <path d="M415.44 512h-95.11L212.12 357.46v91.1L125.69 512H28V29.82L68.47 0h108.05l123.74 176.13V63.45L386.69 0h97.69v461.5zM38.77 35.27V496l72-52.88V194l215.5 307.64h84.79l52.35-38.17h-78.27L69 13zm82.54 466.61l80-58.78v-101l-79.76-114.4v220.94L49 501.89h72.34zM80.63 10.77l310.6 442.57h82.37V10.77h-79.75v317.56L170.91 10.77zM311 191.65l72 102.81V15.93l-72 53v122.72z"/>
+  </svg>
+  <div class="name-container">
+    <div class="logo-name">LectureGuard Q. Q</div>
+  </div>
+  <div class="instructions">
+    <p>1. Register and obtain your unique ID.</p>
+    <p>2. Use your ID to log in and access your assigned questions.</p>
+    <p>3. Afterwards, receive your results within 10 minutes.</p>
+  </div>
+</div>
+
+<!-- LOGIN PAGE -->
+<div class="login-container">
+  <h1>LectureGuard Quick Question</h1>
+  <button class="register-btn">Student Register</button>
+  <button class="login-btn">Student Login</button>
+  <button class="admin-btn">Admin Panel</button>
+  <button class="admin-btn">Student Results</button> <!-- නව Button එක -->
+</div>
+
+<footer>NH TECH ACADEMY</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js"></script>
+<script>
+// Timeline for loader animation + instructions
+let tl = gsap.timeline();
+
+// Animate logo-name first
+tl.to(".logo-name", {y:0, opacity:1, duration:2, ease:"power2.out"});
+
+// Fade in instructions after logo animation
+tl.to(".instructions", {opacity:1, duration:1.5}, "+=0.5");
+
+// Fade out loader & show login page
+tl.to(".loading-page", {opacity:0, duration:1.5, onComplete: ()=>{
+    document.querySelector(".loading-page").style.display="none";
+    gsap.to(".login-container",{opacity:1, duration:1.5});
+}}, "+=2");
+</script>
+
+</body>
+</html>
